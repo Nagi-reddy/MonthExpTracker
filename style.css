@@ -176,6 +176,12 @@ body {
 }
 .fixed-item .del-btn:hover { opacity: 1; }
 .fixed-item .fi-lock { color: var(--muted); font-size: .8rem; padding: 4px 6px; opacity: .5; cursor: default; }
+.fixed-item.confirmed .econfirm,
+.sub-item.confirmed .econfirm { display: none; }
+.fixed-item.confirmed .fi-name,
+.fixed-item.confirmed .fi-amt,
+.sub-item.confirmed .sub-name,
+.sub-item.confirmed .sub-amt { background: #fff; }
 
 /* ── SUBSCRIPTIONS ── */
 .subs-wrap {
@@ -286,6 +292,7 @@ body {
   border: 1px solid rgba(0,212,160,.15);
   border-radius: 9px;
   margin-bottom: 12px;
+  flex-wrap: wrap;
 }
 .pay-row label { font-size: .78rem; color: var(--green); font-weight: 600; white-space: nowrap; }
 .pay-row input {
@@ -305,7 +312,7 @@ body {
 /* ── DAYS GRID ── */
 .days-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
   gap: 10px;
 }
 .day-card {
@@ -318,7 +325,7 @@ body {
 .day-name { font-size: .75rem; font-weight: 700; letter-spacing: .5px; }
 .day-date { font-size: .68rem; color: var(--muted); margin-left: 5px; font-weight: 400; }
 .day-total { font-size: .78rem; font-weight: 600; color: var(--warn); }
-.day-entries { padding: 0 8px 8px; display: flex; flex-direction: column; gap: 5px; min-height: 10px; }
+.day-entries { padding: 0 8px 8px; display: flex; flex-direction: column; gap: 6px; min-height: 10px; }
 .entry-row { display: flex; align-items: center; gap: 5px; }
 .entry-row .ename {
   flex: 1;
@@ -327,28 +334,52 @@ body {
   border-radius: 5px;
   color: var(--text);
   font-size: .78rem;
-  padding: 5px 7px;
+  padding: 6px 8px;
   outline: none;
   transition: .2s;
+  min-width: 0;
 }
 .entry-row .eamt {
-  width: 72px;
+  width: 80px;
   background: var(--inp);
   border: 1px solid var(--border);
   border-radius: 5px;
   color: var(--warn);
   font-size: .78rem;
-  padding: 5px 7px;
+  padding: 6px 8px;
   outline: none;
   transition: .2s;
 }
 .entry-row .ename:focus,
 .entry-row .eamt:focus { border-color: var(--accent); }
+.entry-row .econfirm {
+  background: var(--green);
+  border: none;
+  border-radius: 5px;
+  color: #fff;
+  cursor: pointer;
+  font-size: .75rem;
+  padding: 6px 8px;
+  font-weight: 700;
+  transition: opacity .2s;
+  white-space: nowrap;
+}
+.entry-row .econfirm:hover { opacity: .8; }
 .entry-row .edel {
-  background: none; border: none; color: var(--danger);
-  cursor: pointer; font-size: .9rem; opacity: .5; transition: .2s; padding: 2px;
+  background: none;
+  border: none;
+  color: var(--danger);
+  cursor: pointer;
+  font-size: 1rem;
+  opacity: .5;
+  transition: .2s;
+  padding: 4px;
+  flex-shrink: 0;
 }
 .entry-row .edel:hover { opacity: 1; }
+.entry-row.confirmed .econfirm { display: none; }
+.entry-row.confirmed .ename,
+.entry-row.confirmed .eamt { background: #fff; border-color: var(--border); }
 .day-add-btn {
   display: flex;
   align-items: center;
@@ -359,7 +390,7 @@ body {
   color: var(--muted);
   font-size: .73rem;
   border-radius: 5px;
-  padding: 4px 8px;
+  padding: 5px 10px;
   cursor: pointer;
   width: calc(100% - 16px);
   transition: .2s;
@@ -579,7 +610,8 @@ tr:hover td { background: rgba(124,111,255,.05); cursor: pointer; }
   .pay-row input { width: 100%; }
 
   .days-grid { grid-template-columns: 1fr; }
-  .entry-row .eamt { width: 60px; }
+  .entry-row .eamt { width: 65px; }
+  .entry-row .econfirm { padding: 6px 6px; font-size: .7rem; }
 
   .goal-row { flex-direction: column; gap: 12px; }
   .goal-inp  { min-width: unset; width: 100%; }

@@ -112,14 +112,17 @@ function renderFixed() {
   container.innerHTML = '';
   (data.fixed || []).forEach((f, i) => {
     const row = document.createElement('div');
-    row.className = 'fixed-item';
+    row.className = 'fixed-item' + (f.confirmed ? ' confirmed' : '');
     const isDefault = i < 3;
     row.innerHTML = `
       <span class="fi-icon">${f.icon || '📋'}</span>
       <input class="fi-name" type="text" placeholder="Bill name" value="${esc(f.name)}"
-        oninput="data.fixed[${i}].name=this.value;schedSave()"/>
-      <input class="fi-amt" type="number" placeholder="$0.00" value="${f.amt || ''}"
-        oninput="data.fixed[${i}].amt=parseFloat(this.value)||0;recalc()"/>
+        oninput="data.fixed[${i}].name=this.value;schedSave()"
+        onkeydown="if(event.key==='Enter')confirmFixed(${i})"/>
+      <input class="fi-amt" type="number" min="0" placeholder="$0.00" value="${f.amt || ''}"
+        oninput="data.fixed[${i}].amt=parseFloat(this.value)||0;recalc()"
+        onkeydown="if(event.key==='Enter')confirmFixed(${i})"/>
+      <button class="econfirm" onclick="confirmFixed(${i})">✓</button>
       ${isDefault
         ? `<span class="fi-lock" title="Default bill">🔒</span>`
         : `<button class="del-btn" onclick="removeFixedBill(${i})">✕</button>`}
@@ -129,6 +132,13 @@ function renderFixed() {
   const total = (data.fixed || []).reduce((s, f) => s + (f.amt || 0), 0);
   const ft = document.getElementById('fixedTotal');
   if (ft) ft.textContent = `$${total.toFixed(2)}`;
+}
+
+function confirmFixed(i) {
+  data.fixed[i].confirmed = true;
+  schedSave();
+  renderFixed();
+  recalc();
 }
 
 function addFixedBill() {
@@ -154,16 +164,25 @@ function renderSubs() {
   list.innerHTML = '';
   (data.subs || []).forEach((s, i) => {
     const row = document.createElement('div');
-    row.className = 'sub-item';
+    row.className = 'sub-item' + (s.confirmed ? ' confirmed' : '');
     row.innerHTML = `
       <input class="sub-name" type="text" placeholder="Name (e.g. Netflix)" value="${esc(s.name)}"
-        oninput="data.subs[${i}].name=this.value;schedSave();recalc()"/>
-      <input class="sub-amt" type="number" placeholder="$0" value="${s.amt || ''}"
-        oninput="data.subs[${i}].amt=parseFloat(this.value)||0;schedSave();recalc()"/>
+        oninput="data.subs[${i}].name=this.value;schedSave();recalc()"
+        onkeydown="if(event.key==='Enter')confirmSub(${i})"/>
+      <input class="sub-amt" type="number" min="0" placeholder="$0" value="${s.amt || ''}"
+        oninput="data.subs[${i}].amt=parseFloat(this.value)||0;schedSave();recalc()"
+        onkeydown="if(event.key==='Enter')confirmSub(${i})"/>
+      <button class="econfirm" onclick="confirmSub(${i})">✓</button>
       <button class="del-btn" onclick="removeSub(${i})">✕</button>
     `;
     list.appendChild(row);
   });
+}
+
+function confirmSub(i) {
+  data.subs[i].confirmed = true;
+  schedSave();
+  renderSubs();
 }
 
 function addSub() {
@@ -255,9 +274,11 @@ function renderWeeks() {
       </div>
       <div class="week-body" id="wbody_${wi}">
         <div class="pay-row">
-          <label>💵 Pay Received this week</label>
-          <input type="number" value="${wk.pay || ''}" placeholder="$0.00"
-            oninput="data.weeks[${wi}].pay=parseFloat(this.value)||0;updateWeekStats(${wi});recalc()"/>
+          <label>💵 Pay Received</label>
+          <input type="number" min="0" id="pay_${wi}" value="${wk.pay || ''}" placeholder="$0.00"
+            oninput="data.weeks[${wi}].pay=parseFloat(this.value)||0;updateWeekStats(${wi});recalc()"
+            onkeydown="if(event.key==='Enter')confirmPay(${wi})"/>
+          <button class="econfirm" onclick="confirmPay(${wi})">✓</button>
         </div>
         <div class="days-grid" id="days_${wi}"></div>
       </div>
@@ -272,6 +293,16 @@ function toggleWeek(wi) {
   const body   = document.getElementById(`wbody_${wi}`);
   const isOpen = block.classList.toggle('open');
   body.classList.toggle('open', isOpen);
+}
+
+function confirmPay(wi) {
+  data.weeks[wi].payConfirmed = true;
+  schedSave();
+  const btn = document.querySelector(`#wbody_${wi} .pay-row .econfirm`);
+  if (btn) { btn.textContent = '✓ Saved'; btn.style.background = 'var(--green)'; btn.disabled = true; }
+  setTimeout(() => {
+    if (btn) { btn.textContent = '✓'; btn.disabled = false; }
+  }, 1500);
 }
 
 // ─────────────────────────────────────────
@@ -310,16 +341,26 @@ function renderEntries(wi, day) {
   container.innerHTML = '';
   entries.forEach((e, ei) => {
     const row = document.createElement('div');
-    row.className = 'entry-row';
+    row.className = 'entry-row' + (e.confirmed ? ' confirmed' : '');
     row.innerHTML = `
       <input class="ename" type="text" placeholder="Name" value="${esc(e.name)}"
-        oninput="data.weeks[${wi}].days['${day}'][${ei}].name=this.value;schedSave()"/>
-      <input class="eamt" type="number" placeholder="$0" value="${e.amt || ''}"
-        oninput="data.weeks[${wi}].days['${day}'][${ei}].amt=parseFloat(this.value)||0;updateDay(${wi},'${day}');recalc()"/>
+        oninput="data.weeks[${wi}].days['${day}'][${ei}].name=this.value;schedSave()"
+        onkeydown="if(event.key==='Enter')confirmEntry(${wi},'${day}',${ei})"/>
+      <input class="eamt" type="number" min="0" placeholder="$0" value="${e.amt || ''}"
+        oninput="data.weeks[${wi}].days['${day}'][${ei}].amt=parseFloat(this.value)||0;updateDay(${wi},'${day}');recalc()"
+        onkeydown="if(event.key==='Enter')confirmEntry(${wi},'${day}',${ei})"/>
+      <button class="econfirm" onclick="confirmEntry(${wi},'${day}',${ei})">✓</button>
       <button class="edel" onclick="removeEntry(${wi},'${day}',${ei})">✕</button>
     `;
     container.appendChild(row);
   });
+}
+
+function confirmEntry(wi, day, ei) {
+  if (!data.weeks[wi].days[day][ei]) return;
+  data.weeks[wi].days[day][ei].confirmed = true;
+  schedSave();
+  renderEntries(wi, day);
 }
 
 function addEntry(wi, day) {
@@ -360,7 +401,7 @@ function updateWeekStats(wi) {
 
 function calcWeekSpent(wi) {
   let t = 0;
-  DAYS.forEach(d => { (data.weeks[wi].days[d] || []).forEach(e => t += e.amt || 0); });
+  DAYS.forEach(d => { (data.weeks[wi].days[d] || []).forEach(e => t += Math.max(e.amt || 0, 0)); });
   return t;
 }
 
@@ -371,8 +412,8 @@ function recalc() {
   data.goal  = parseFloat(document.getElementById('goalInput').value) || 0;
   data.notes = document.getElementById('notesArea').value;
 
-  const fixed  = (data.fixed || []).reduce((s, f) => s + (f.amt || 0), 0);
-  const subTot = (data.subs  || []).reduce((s, sub) => s + (sub.amt || 0), 0);
+  const fixed  = (data.fixed || []).reduce((s, f) => s + Math.max(f.amt || 0, 0), 0);
+  const subTot = (data.subs  || []).reduce((s, sub) => s + Math.max(sub.amt || 0, 0), 0);
   let income = 0, wkExp = 0;
   data.weeks.forEach((wk, wi) => {
     income += wk.pay || 0;
