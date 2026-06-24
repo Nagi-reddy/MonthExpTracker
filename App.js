@@ -582,4 +582,8 @@ function esc(s) { return (s || '').replace(/"/g, '&quot;'); }
 // ─────────────────────────────────────────
 // START
 // ─────────────────────────────────────────
-init();
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', init);
+} else {
+  init();
+}
